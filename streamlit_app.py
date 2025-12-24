@@ -5,64 +5,96 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-# App Title
-st.title("Scientific Slide Library Uploader")
+# Set page title
+st.set_page_config(page_title="Scientific Slide Library", page_icon="🔬")
+st.title("🔬 Scientific Slide Library Uploader")
+st.markdown("Use the form below to upload your slides and update the tracking sheet.")
 
-# Load configuration from Streamlit Secrets (for security)
-# In Streamlit Cloud, you'll paste your JSON content into the "Secrets" setting
-if "gcp_service_account" in st.secrets:
-    info = st.secrets["gcp_service_account"]
-    creds = service_account.Credentials.from_service_account_info(info)
-else:
-    # For local testing, looks for your file
-    creds = service_account.Credentials.from_service_account_file("service-account.json")
-
-SHEET_ID = st.secrets.get("SHEET_ID", "YOUR_SHEET_ID")
-FOLDER_ID = st.secrets.get("FOLDER_ID", "YOUR_FOLDER_ID")
-
-# Initialize Services
-sheets_service = build("sheets", "v4", credentials=creds)
-drive_service = build("drive", "v3", credentials=creds)
-
-# Simple Form UI
-with st.form("upload_form", clear_on_submit=True):
-    name = st.text_input("Name")
-    description = st.text_area("Description")
-    keywords = st.text_input("Keywords")
-    uploaded_file = st.file_ Breaker("Choose a file")
+# 1. AUTHENTICATION (Using Streamlit Secrets)
+try:
+    # Get IDs and JSON contents from Secrets
+    SHEET_ID = st.secrets["SHEET_ID"]
+    FOLDER_ID = st.secrets["FOLDER_ID"]
     
-    submit_button = st.form_submit_button("Submit")
+    # Map the service account keys from the [gcp_service_account] section in Secrets
+    credentials_info = st.secrets["gcp_service_account"]
+    
+    creds = service_account.Credentials.from_service_account_info(
+        credentials_info,
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive.file"
+        ]
+    )
+    
+    # Build the API services
+    sheets_service = build("sheets", "v4", credentials=creds)
+    drive_service = build("drive", "v3", credentials=creds)
+except Exception as e:
+    st.error("⚠️ Authentication Error: Please check your Streamlit 'Secrets' configuration.")
+    st.stop()
 
+# 2. THE UPLOAD FORM
+with st.form("upload_form", clear_on_submit=True):
+    name = st.text_input("Presenter Name")
+    description = st.text_area("Topic/Description")
+    keywords = st.text_input("Keywords (comma separated)")
+    
+    # Corrected function name: st.file_uploader
+    uploaded_file = st.file_uploader("Choose Presentation File (PDF, PPTX, etc.)")
+    
+    submit_button = st.form_submit_button("Submit Entry")
+
+# 3. PROCESSING
 if submit_button:
     if not name or not description:
-        st.error("Please provide both a name and a description.")
+        st.warning("Please provide at least a name and a description.")
     else:
-        with st.spinner("Uploading..."):
-            file_link = ""
+        with st.spinner("Processing upload... please wait."):
+            file_link = "No file uploaded"
             
-            # Handle File Upload to Google Drive
+            # --- STEP A: UPLOAD TO GOOGLE DRIVE ---
             if uploaded_file is not None:
+                # Write memory file to a temp file on disk for the Google API to read
                 with tempfile.NamedTemporaryFile(delete=False) as tmp:
                     tmp.write(uploaded_file.getvalue())
                     tmp_path = tmp.name
 
                 try:
-                    file_metadata = {"name": uploaded_file.name, "parents": [FOLDER_ID]}
+                    file_metadata = {
+                        "name": uploaded_file.name,
+                        "parents": [FOLDER_ID]
+                    }
                     media = MediaFileUpload(tmp_path, resumable=True)
-                    drive_file = drive_service.files().create(
-                        body=file_metadata, media_body=media, fields="webViewLink"
+                    
+                    # Create the file in Drive
+                    uploaded_drive_file = drive_service.files().create(
+                        body=file_metadata,
+                        media_body=media,
+                        fields="webViewLink"
                     ).execute()
-                    file_link = drive_file.get("webViewLink")
+                    
+                    file_link = uploaded_drive_file.get("webViewLink")
+                except Exception as e:
+                    st.error(f"Drive Error: {e}")
                 finally:
-                    os.remove(tmp_path)
+                    # Cleanup the temporary file from the server
+                    if os.path.exists(tmp_path):
+                        os.remove(tmp_path)
 
-            # Update Google Sheet
-            row = [[name, description, keywords, file_link]]
-            sheets_service.spreadsheets().values().append(
-                spreadsheetId=SHEET_ID,
-                range="Sheet1!A:D",
-                valueInputOption="USER_ENTERED",
-                body={"values": row}
-            ).execute()
-            
-            st.success(f"Success! Data added to sheet. File link: {file_link}")
+            # --- STEP B: UPDATE GOOGLE SHEET ---
+            try:
+                # Prepare row data
+                row_data = [[name, description, keywords, file_link]]
+                
+                sheets_service.spreadsheets().values().append(
+                    spreadsheetId=SHEET_ID,
+                    range="Sheet1!A1",
+                    valueInputOption="USER_ENTERED",
+                    body={"values": row_data}
+                ).execute()
+                
+                st.success("✅ Entry recorded successfully!")
+                st.balloons()
+            except Exception as e:
+                st.error(f"Sheets Error: {e}")
