@@ -74,6 +74,12 @@ if submit_button:
                         fields="webViewLink"
                     ).execute()
                     
+                    # Optional: Add this right after the .execute() line if it still fails
+                    drive_service.permissions().create(
+                        fileId=uploaded_drive_file.get("id"),
+                        body={'type': 'anyone', 'role': 'reader'}
+                    ).execute()
+                    
                     file_link = uploaded_drive_file.get("webViewLink")
                 except Exception as e:
                     st.error(f"Drive Error: {e}")
