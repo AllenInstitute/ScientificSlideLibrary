@@ -12,6 +12,7 @@ from google.auth.transport.requests import Request
 # Replace these with your actual IDs
 SPREADSHEET_ID = st.secrets["SHEET_ID"]
 FOLDER_ID = st.secrets["FOLDER_ID"]
+SHEET_ID = SPREADSHEET_ID
 
 def get_gdrive_service():
     """Authenticates using the OAuth Refresh Token from st.secrets"""
@@ -85,14 +86,14 @@ if submit_button:
                     uploaded_drive_file = drive_service.files().create(
                         body=file_metadata,
                         media_body=media,
-                        fields="webViewLink"
+                        fields="id, webViewLink"
                     ).execute()
                     
                     # Optional: Add this right after the .execute() line if it still fails
-                    drive_service.permissions().create(
-                        fileId=uploaded_drive_file.get("id"),
-                        body={'type': 'anyone', 'role': 'reader'}
-                    ).execute()
+                    #drive_service.permissions().create(
+                    #    fileId=uploaded_drive_file.get("id"),
+                    #    body={'type': 'anyone', 'role': 'reader'}
+                    #).execute()
                     
                     file_link = uploaded_drive_file.get("webViewLink")
                 except Exception as e:
