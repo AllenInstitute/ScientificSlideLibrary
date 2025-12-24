@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Google Sheet Table</title>
+
+  <!-- DataTables CSS -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
+  >
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Google Sheet Viewer</h2>
+
+<table id="sheetTable" class="display" style="width:100%">
+  <thead></thead>
+  <tbody></tbody>
+</table>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- DataTables -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<!-- PapaParse (CSV parser) -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<script>
+const sheetUrl =
+  "https://docs.google.com/spreadsheets/d/1BqFpAy8BcnHrVwEZgJSaRt3LpOVFBfk04PXRdKjNrJg/gviz/tq?tqx=out:csv";
+
+Papa.parse(sheetUrl, {
+  download: true,
+  header: true,
+  complete: function(results) {
+    const data = results.data;
+    const columns = Object.keys(data[0]).map(col => ({
+      title: col,
+      data: col,
+      render: function(value) {
+        if (col.toLowerCase() === "link" && value) {
+          return `<a href="${value}" target="_blank" rel="noopener noreferrer">
+                    link to file
+                  </a>`;
+        }
+        return value;
+      }
+    }));
+
+    $('#sheetTable').DataTable({
+      data: data,
+      columns: columns,
+      pageLength: 10
+    });
+  }
+});
+</script>
+
+</body>
+</html>
