@@ -1,42 +1,55 @@
 import streamlit as st
-import tempfile
-import os
-from google.oauth2 import service_account
+import pandas as pd
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+import os
 
-# Set page title
-st.set_page_config(page_title="Scientific Slide Library", page_icon="🔬")
-st.title("🔬 Scientific Slide Library Uploader")
-st.markdown("Use the form below to upload your slides and update the tracking sheet.")
+# --- 1. SETTINGS & AUTHENTICATION ---
 
-# 1. AUTHENTICATION (Using Streamlit Secrets)
-try:
-    # Get IDs and JSON contents from Secrets
-    SHEET_ID = st.secrets["SHEET_ID"]
-    FOLDER_ID = st.secrets["FOLDER_ID"]
+# Replace these with your actual IDs
+SPREADSHEET_ID = st.secrets["SHEET_ID"]
+FOLDER_ID = st.secrets["FOLDER_ID"]
+
+def get_gdrive_service():
+    """Authenticates using the OAuth Refresh Token from st.secrets"""
+    creds_info = st.secrets["google_oauth"]
     
-    # Map the service account keys from the [gcp_service_account] section in Secrets
-    credentials_info = st.secrets["gcp_service_account"]
-    
-    creds = service_account.Credentials.from_service_account_info(
-        credentials_info,
-        scopes=[
-            "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive.file"
-        ]
+    # Create credentials object using your specific Refresh Token
+    creds = Credentials(
+        token=None,  # Access token starts empty
+        refresh_token=creds_info["refresh_token"],
+        client_id=creds_info["client_id"],
+        client_secret=creds_info["client_secret"],
+        token_uri="https://oauth2.googleapis.com/token"
     )
+
+    # Refresh the access token automatically if it's expired
+    if not creds.valid:
+        creds.refresh(Request())
     
-    # Build the API services
-    sheets_service = build("sheets", "v4", credentials=creds)
-    drive_service = build("drive", "v3", credentials=creds)
+    # Build the services
+    drive_service = build('drive', 'v3', credentials=creds)
+    sheets_service = build('sheets', 'v4', credentials=creds)
+    
+    return drive_service, sheets_service
+
+# Initialize the services
+try:
+    drive_service, sheets_service = get_gdrive_service()
 except Exception as e:
-    st.error("⚠️ Authentication Error: Please check your Streamlit 'Secrets' configuration.")
+    st.error(f"Authentication Failed: {e}")
     st.stop()
+
+# --- APP INTERFACE START ---
+st.title("Scientific Slide Library")
+st.write("Upload your slides and details below.")
 
 # 2. THE UPLOAD FORM
 with st.form("upload_form", clear_on_submit=True):
-    name = st.text_input("Presenter Name")
+    person = st.text_input("Your name")
+    name = st.text_input("Name of Presentation")
     description = st.text_area("Topic/Description")
     keywords = st.text_input("Keywords (comma separated)")
     
@@ -91,7 +104,7 @@ if submit_button:
             # --- STEP B: UPDATE GOOGLE SHEET ---
             try:
                 # Prepare row data
-                row_data = [[name, description, keywords, file_link]]
+                row_data = [[name, description, keywords, file_link, person]]
                 
                 sheets_service.spreadsheets().values().append(
                     spreadsheetId=SHEET_ID,
