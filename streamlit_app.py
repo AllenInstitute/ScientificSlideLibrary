@@ -204,6 +204,8 @@ with tab2:
         else:
             with st.spinner("Processing upload..."):
                 file_link = "No file uploaded"
+                st.write("Drive service auth:", drive_service._http.credentials.__class__)
+
 
                 if uploaded_file is not None:
                     with tempfile.NamedTemporaryFile(delete=False) as tmp:
@@ -220,7 +222,8 @@ with tab2:
                         uploaded_drive_file = drive_service.files().create(
                             body=file_metadata,
                             media_body=media,
-                            fields="id, webViewLink"
+                            fields="id, webViewLink",
+                            supportsAllDrives=True
                         ).execute()
 
                         file_link = uploaded_drive_file.get("webViewLink")
