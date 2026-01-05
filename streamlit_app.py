@@ -153,6 +153,7 @@ with tab1:
                 use_container_width=True,
                 hide_index=True,
                 height=600,
+                row_height=100,  # <--- Add this to enable text wrapping
                 column_config={
                     "Presentation Title": st.column_config.TextColumn(
                         "Title", width="medium"
