@@ -164,14 +164,14 @@ with tab1:
                     "Keywords": st.column_config.TextColumn(
                         "Keywords", width="small"
                     ),
-                    "Person": st.column_config.TextColumn(
-                        "Contact", width="small"
+                    "Contact": st.column_config.TextColumn(
+                        "Contact", width=50
                     ),
                     "Link": st.column_config.LinkColumn(
-                        "View", display_text="👁️ Open"
+                        "View", display_text="👁️ Open", width=50
                     ),
                     "Download": st.column_config.LinkColumn(
-                        "Download", display_text="📥 Download"
+                        "Download", display_text="📥 Download", width=50
                     )
                 }
             )
