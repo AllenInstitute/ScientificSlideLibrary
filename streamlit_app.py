@@ -156,7 +156,7 @@ with tab1:
                 row_height=100,  # <--- Add this to enable text wrapping
                 column_config={
                     "Presentation Title": st.column_config.TextColumn(
-                        "Title", width="medium"
+                        "Title", width="small"
                     ),
                     "Description": st.column_config.TextColumn(
                         "Description", width="large"
@@ -164,14 +164,11 @@ with tab1:
                     "Keywords": st.column_config.TextColumn(
                         "Keywords", width="small"
                     ),
+                    "Link": st.column_config.LinkColumn(
+                        "View", display_text="👁️ Open file", width=50
+                    ),
                     "Contact": st.column_config.TextColumn(
                         "Contact", width=50
-                    ),
-                    "Link": st.column_config.LinkColumn(
-                        "View", display_text="👁️ Open", width=50
-                    ),
-                    "Download": st.column_config.LinkColumn(
-                        "Download", display_text="📥 Download", width=50
                     )
                 }
             )
