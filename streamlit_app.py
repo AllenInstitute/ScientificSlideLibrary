@@ -141,9 +141,8 @@ with tab1:
                 "Presentation Title",
                 "Description",
                 "Keywords",
-                "Person",      # Contact
-                "Link",        # View
-                "Download"     # Download
+                "Link",       # View
+                "Contact"     # Download
             ]
             df = df[[c for c in desired_order if c in df.columns]]
 
