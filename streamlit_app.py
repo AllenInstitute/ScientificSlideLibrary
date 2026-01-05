@@ -2,31 +2,28 @@ import streamlit as st
 import pandas as pd
 import tempfile
 import os
+from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
 
 # --- 1. SETTINGS & AUTHENTICATION ---
 SPREADSHEET_ID = st.secrets["SHEET_ID"]
 FOLDER_ID = st.secrets["FOLDER_ID"]
 SHEET_ID = SPREADSHEET_ID
 
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
 
 def get_gdrive_service():
-    """Authenticates using the OAuth Refresh Token from st.secrets"""
-    creds_info = st.secrets["google_oauth"]
-    creds = Credentials(
-        token=None,
-        refresh_token=creds_info["refresh_token"],
-        client_id=creds_info["client_id"],
-        client_secret=creds_info["client_secret"],
-        token_uri="https://oauth2.googleapis.com/token"
+    creds = service_account.Credentials.from_service_account_info(
+        st.secrets["service_account"],
+        scopes=SCOPES
     )
-    if not creds.valid:
-        creds.refresh(Request())
+
     drive_service = build("drive", "v3", credentials=creds)
     sheets_service = build("sheets", "v4", credentials=creds)
+
     return drive_service, sheets_service
 
 
