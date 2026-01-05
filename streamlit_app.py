@@ -4,6 +4,7 @@ import tempfile
 import os
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 
 # --- 1. SETTINGS & AUTHENTICATION ---
 SPREADSHEET_ID = st.secrets["SHEET_ID"]
