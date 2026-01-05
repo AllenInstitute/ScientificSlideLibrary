@@ -230,6 +230,9 @@ with tab2:
 
                     except Exception as e:
                         st.error(f"Drive Error: {e}")
+                        st.error("Drive upload failed")
+                        st.exception(e)
+                        st.stop()
 
                     finally:
                         if os.path.exists(tmp_path):
