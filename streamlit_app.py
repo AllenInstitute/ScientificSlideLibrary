@@ -142,7 +142,8 @@ with tab1:
                 "Description",
                 "Keywords",
                 "Link",       # View
-                "Contact"     # Download
+                "Contact",     # Download
+                "Date Updated"
             ]
             df = df[[c for c in desired_order if c in df.columns]]
 
@@ -168,6 +169,9 @@ with tab1:
                     ),
                     "Contact": st.column_config.TextColumn(
                         "Contact", width=50
+                    ),
+                    "Date Updated": st.column_config.TextColumn(
+                        "Date Updated", width=50
                     )
                 }
             )
@@ -191,6 +195,7 @@ with tab2:
         name = st.text_input("Presentation Title")
         description = st.text_area("Topic / Description")
         keywords = st.text_input("Keywords (comma separated)")
+        date_updated = st.text_input("Date updated (MM/YYYY)")
         uploaded_file = st.file_uploader(
             "Choose Presentation File (PDF, PPTX, etc.)"
         )
@@ -237,7 +242,8 @@ with tab2:
                         description,
                         keywords,
                         file_link,
-                        person
+                        person,
+                        date_updated
                     ]]
 
                     sheets_service.spreadsheets().values().append(
