@@ -2,16 +2,50 @@ import streamlit as st
 import pandas as pd
 import tempfile
 import os
+import smtplib
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # --- 1. SETTINGS & AUTHENTICATION ---
 SPREADSHEET_ID = st.secrets["SHEET_ID"]
 FOLDER_ID = st.secrets["FOLDER_ID"]
 SHEET_ID = SPREADSHEET_ID
 
+def send_notification_email(presentation_title, contributor_name):
+    sender_email = st.secrets["EMAIL_SENDER"]
+    sender_password = st.secrets["EMAIL_PASSWORD"]
+    receiver_email = st.secrets["EMAIL_RECEIVER"]
+
+    # Create the email header
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = receiver_email
+    message["Subject"] = f"🚀 New Slide Submission: {presentation_title}"
+
+    # Email Body
+    body = f"""
+    A new entry has been added to the Scientific Slide Library.
+    
+    Title: {presentation_title}
+    Contributor: {contributor_name}
+    
+    Check the database here: https://share.streamlit.io/your-repo-link
+    """
+    message.attach(MIMEText(body, "plain"))
+
+    try:
+        # For Gmail: Use smtp.gmail.com | Port: 587
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, receiver_email, message.as_string())
+        server.quit()
+    except Exception as e:
+        st.error(f"Failed to send email notification: {e}")
 
 def get_gdrive_service():
     """Authenticates using the OAuth Refresh Token from st.secrets"""
@@ -248,6 +282,7 @@ with st.container(border=True):
                             body={"values": row_data}
                         ).execute()
                         st.success("✅ Entry recorded successfully!")
+                        send_notification_email(name, person)  # --- TRIGGER EMAIL NOTIFICATION ---
                         st.balloons()
                         st.rerun()
                     except Exception as e:
