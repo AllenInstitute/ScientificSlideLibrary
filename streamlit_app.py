@@ -133,8 +133,7 @@ with st.container(border=True):
     # 📚 TAB 1: BROWSE LIBRARY
     # =========================
     with tab1:
-        st.header("Library Database")
-        st.subheader("🔍 Search Library")
+        st.write("Browse the library by (optionally) filtering for key words. Then click 'Open file' to access the slide deck of interest.")
         search_query = st.text_input("", placeholder="Search by title, description, keyword, or contact…")
 
         try:
@@ -197,7 +196,6 @@ with st.container(border=True):
     # 📤 TAB 2: UPLOAD NEW FILE
     # =========================
     with tab2:
-        st.header("Contribute to the Library")
         st.write("Upload your slides and provide the associated metadata.")
 
         with st.form("upload_form", clear_on_submit=True):
