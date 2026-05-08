@@ -81,9 +81,15 @@ st.markdown(
 st.title("🔬 Scientific Slide Library")
 st.markdown(
     """
-    Welcome to the central resource repository.  
-    Browse curated scientific presentations, search for specific topics,
-    and access downloadable files directly.
+    Welcome to the Scientific Slide Library, a curated collection of reusable, non-confidential slides and slide decks covering key scientific topics (e.g., cell types, taxonomies, patch-seq, spatial transcriptomics, and more). This library is designed to make it easy to quickly build high-quality, consistent presentations for talks, meetings, and outreach.
+
+    ### How to use
+    - Feel free to incorporate these slides into your presentations.
+    - Please credit the original slide creators where appropriate.
+    - Use slides as-is or adapt them to your audience and context.
+    - **If you have helpful slides to share, please contribute them to the library using the "Upload New Slides" tab.**
+
+    If you have any suggestions or have difficulty accessing any slide decks please contact [**Jeremy Miller**](mailto:jeremym@alleninstitute.org?subject=Scientific%20Slide%20Library).
     """
 )
 
