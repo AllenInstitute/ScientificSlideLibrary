@@ -133,8 +133,17 @@ with st.container(border=True):
     # 📚 TAB 1: BROWSE LIBRARY
     # =========================
     with tab1:
-        st.write("Browse the library by (optionally) filtering for key words. Then click 'Open file' to access the slide deck of interest.")
-        search_query = st.text_input("", placeholder="Search by title, description, keyword, or contact…")
+        col1, col2 = st.columns([2, 1], vertical_alignment="center")
+
+        with col1:
+            st.write("Browse (after optionally filtering) the library, and then click 'Open file' to access the slide deck of interest.")
+
+        with col2:
+            search_query = st.text_input(
+                "", 
+                placeholder="Search by title, description, keyword, or contact…",
+                label_visibility="collapsed" # This removes the empty space where a label would go
+            )
 
         try:
             result = sheets_service.spreadsheets().values().get(
