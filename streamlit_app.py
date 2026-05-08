@@ -98,7 +98,7 @@ st.markdown(
     <div class="topbar">
       <div class="topbar-brand">
         <a href="https://alleninstitute.org" target="_blank">
-          <img src="https://alleninstitute.org/assets/images/logo-allen-institute.svg" alt="Allen Institute">
+          <img src="https://raw.githubusercontent.com/AllenInstitute/ScientificSlideLibrary/main/allen_institute_logo.svg" alt="Allen Institute">
         </a>
       </div>
       <div class="topbar-nav">
