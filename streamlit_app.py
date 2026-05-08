@@ -95,7 +95,7 @@ st.markdown(
     - Use slides as-is or adapt them to your audience and context.
     - If you have helpful slides to share, please contribute them to the library using the **"📤 Upload New Slides"** tab.
 
-    #### If you have any suggestions or have difficulty accessing any slide decks please contact [**Jeremy Miller**](mailto:jeremym@alleninstitute.org?subject=Scientific%20Slide%20Library).   
+    **If you have any suggestions or have difficulty accessing any slide decks please contact [Jeremy Miller](mailto:jeremym@alleninstitute.org?subject=Scientific%20Slide%20Library).**   
     """
 )
 
