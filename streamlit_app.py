@@ -45,12 +45,37 @@ st.set_page_config(
     page_icon="🔬"
 )
 
-# --- 3. GLOBAL STYLES ---
+# --- 3. GLOBAL STYLES & CUSTOM HEADER ---
 st.markdown(
     """
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
+    /* ── Top header bar style ── */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; height: 60px;
+      background-color: #000000; color: #fff;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; z-index: 9999; font-size: 14px;
+    }
+    .topbar-brand a { display: flex; align-items: center; text-decoration: none; }
+    .topbar-brand img { height: 30px; }
+    .topbar-nav { display: flex; align-items: center; gap: 6px; }
+    .topbar-nav a {
+      color: #fff; text-decoration: none; padding: 6px 14px;
+      border-radius: 3px; font-size: 14px; transition: background-color 0.2s;
+    }
+    .topbar-nav a:hover { background-color: rgba(255,255,255,0.15); }
+
+    /* Push Streamlit content down so it doesn't hide under the floating header */
     .stApp {
         background-color: #e6e6e6;
+        padding-top: 60px;
+    }
+    
+    /* Hide the default Streamlit header to give your custom one priority */
+    header[data-testid="stHeader"] {
+        display: none;
     }
 
     .stTabs [data-baseweb="tab"] p {
@@ -65,19 +90,22 @@ st.markdown(
         box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     }
 
-    div[data-testid="stDataFrame"] td {
-        white-space: normal !important;
-        word-wrap: break-word;
-    }
-
-    div[data-testid="stDataFrame"] tr:hover {
-        background-color: #f5f7fa;
-    }
-
     h1, h2, h3 {
         color: #2c2c2c;
     }
     </style>
+
+    <div class="topbar">
+      <div class="topbar-brand">
+        <a href="https://alleninstitute.org" target="_blank">
+          <img src="https://alleninstitute.org/assets/images/logo-allen-institute.svg" alt="Allen Institute">
+        </a>
+      </div>
+      <div class="topbar-nav">
+        <a href="https://alleninstitute.org" target="_blank"><i class="fas fa-building"></i> Allen Institute</a>
+        <a href="https://brain-map.org" target="_blank"><i class="fas fa-globe"></i> Brain Map</a>
+      </div>
+    </div>
     """,
     unsafe_allow_html=True
 )
@@ -86,21 +114,18 @@ st.markdown(
 st.title("🔬 Scientific Slide Library")
 st.markdown(
     """
-    Welcome to the Scientific Slide Library, a curated collection of reusable, non-confidential slides and slide decks covering key scientific topics (e.g., cell types, taxonomies, patch-seq, spatial transcriptomics, and more). This library is designed to make it easy to quickly build high-quality, consistent presentations for talks, meetings, and outreach.
+    Welcome to the Scientific Slide Library, a curated collection of reusable, non-confidential slides and slide decks covering key scientific topics. 
 
     #### How to use
     - Search for content of interest on the **"📚 Browse Library"** tab.
     - Feel free to incorporate these slides into your presentations.
     - Please credit the original slide creators where appropriate.
-    - Use slides as-is or adapt them to your audience and context.
     - If you have helpful slides to share, please contribute them to the library using the **"📤 Upload New Slides"** tab.
 
-    **If you have any suggestions or have difficulty accessing any slide decks please contact [Jeremy Miller](mailto:jeremym@alleninstitute.org?subject=Scientific%20Slide%20Library).**   
-    """
+    **Suggestions or difficulty accessing decks? Contact [Jeremy Miller](mailto:jeremym@alleninstitute.org?subject=Scientific%20Slide%20Library).** """
 )
 
 # --- 5. TABS ---
-# Wrapping the tabs in a bordered container to delineate from the header
 with st.container(border=True):
     tab1, tab2 = st.tabs(["📚 Browse Library", "📤 Upload New Slides"])
 
@@ -109,12 +134,8 @@ with st.container(border=True):
     # =========================
     with tab1:
         st.header("Library Database")
-
         st.subheader("🔍 Search Library")
-        search_query = st.text_input(
-            "",
-            placeholder="Search by title, description, keyword, or contact…"
-        )
+        search_query = st.text_input("", placeholder="Search by title, description, keyword, or contact…")
 
         try:
             result = sheets_service.spreadsheets().values().get(
@@ -129,7 +150,6 @@ with st.container(border=True):
             else:
                 df = pd.DataFrame(values[1:], columns=values[0])
 
-                # --- CREATE DOWNLOAD LINK ---
                 def make_download_url(view_url):
                     try:
                         if "drive.google.com" in view_url:
@@ -142,50 +162,28 @@ with st.container(border=True):
                 if "Link" in df.columns:
                     df["Download"] = df["Link"].apply(make_download_url)
 
-                # --- SEARCH FILTER ---
                 if search_query:
                     df = df[df.apply(
                         lambda row: row.astype(str).str.contains(search_query, case=False).any(),
                         axis=1
                     )]
 
-                # --- COLUMN ORDERING ---
-                desired_order = [
-                    "Presentation Title",
-                    "Description",
-                    "Keywords",
-                    "Link",       # View
-                    "Contact",     # Download
-                    "Date Updated"
-                ]
+                desired_order = ["Presentation Title", "Description", "Keywords", "Link", "Contact", "Date Updated"]
                 df = df[[c for c in desired_order if c in df.columns]]
 
-                # --- DISPLAY TABLE ---
                 st.dataframe(
                     df,
                     use_container_width=True,
                     hide_index=True,
                     height=600,
-                    row_height=100,  # Enables text wrapping
+                    row_height=100,
                     column_config={
-                        "Presentation Title": st.column_config.TextColumn(
-                            "Title", width="small"
-                        ),
-                        "Description": st.column_config.TextColumn(
-                            "Description", width="large"
-                        ),
-                        "Keywords": st.column_config.TextColumn(
-                            "Keywords", width="small"
-                        ),
-                        "Link": st.column_config.LinkColumn(
-                            "View", display_text="👁️ Open file", width=50
-                        ),
-                        "Contact": st.column_config.TextColumn(
-                            "Contact", width=50
-                        ),
-                        "Date Updated": st.column_config.TextColumn(
-                            "Date Updated", width=50
-                        )
+                        "Presentation Title": st.column_config.TextColumn("Title", width="small"),
+                        "Description": st.column_config.TextColumn("Description", width="large"),
+                        "Keywords": st.column_config.TextColumn("Keywords", width="small"),
+                        "Link": st.column_config.LinkColumn("View", display_text="👁️ Open file", width=50),
+                        "Contact": st.column_config.TextColumn("Contact", width=50),
+                        "Date Updated": st.column_config.TextColumn("Date Updated", width=50)
                     }
                 )
 
@@ -194,7 +192,6 @@ with st.container(border=True):
 
         except Exception as e:
             st.error(f"Could not load the database: {e}")
-
 
     # =========================
     # 📤 TAB 2: UPLOAD NEW FILE
@@ -209,10 +206,7 @@ with st.container(border=True):
             description = st.text_area("Topic / Description")
             keywords = st.text_input("Keywords (comma separated)")
             date_updated = st.text_input("Date updated (MM/YYYY)")
-            uploaded_file = st.file_uploader(
-                "Choose Presentation File (PDF, PPTX, etc.)"
-            )
-
+            uploaded_file = st.file_uploader("Choose Presentation File (PDF, PPTX, etc.)")
             submit_button = st.form_submit_button("Submit Entry")
 
         if submit_button:
@@ -221,54 +215,33 @@ with st.container(border=True):
             else:
                 with st.spinner("Processing upload..."):
                     file_link = "No file uploaded"
-
                     if uploaded_file is not None:
                         with tempfile.NamedTemporaryFile(delete=False) as tmp:
                             tmp.write(uploaded_file.getvalue())
                             tmp_path = tmp.name
-
                         try:
-                            file_metadata = {
-                                "name": uploaded_file.name,
-                                "parents": [FOLDER_ID]
-                            }
+                            file_metadata = {"name": uploaded_file.name, "parents": [FOLDER_ID]}
                             media = MediaFileUpload(tmp_path, resumable=True)
-
                             uploaded_drive_file = drive_service.files().create(
-                                body=file_metadata,
-                                media_body=media,
-                                fields="id, webViewLink"
+                                body=file_metadata, media_body=media, fields="id, webViewLink"
                             ).execute()
-
                             file_link = uploaded_drive_file.get("webViewLink")
-
                         except Exception as e:
                             st.error(f"Drive Error: {e}")
-
                         finally:
                             if os.path.exists(tmp_path):
                                 os.remove(tmp_path)
 
                     try:
-                        row_data = [[
-                            name,
-                            description,
-                            keywords,
-                            file_link,
-                            person,
-                            date_updated
-                        ]]
-
+                        row_data = [[name, description, keywords, file_link, person, date_updated]]
                         sheets_service.spreadsheets().values().append(
                             spreadsheetId=SHEET_ID,
                             range="Sheet1!A1",
                             valueInputOption="USER_ENTERED",
                             body={"values": row_data}
                         ).execute()
-
                         st.success("✅ Entry recorded successfully!")
                         st.balloons()
                         st.rerun()
-
                     except Exception as e:
                         st.error(f"Sheets Error: {e}")
