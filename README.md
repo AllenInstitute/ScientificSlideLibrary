@@ -7,4 +7,4 @@ To visit the back-end Google Sheet, [**CLICK HERE**](https://docs.google.com/spr
 
 Access the slides directly:
 * To visit the Google Drive slide library folder^, [**CLICK HERE**](https://drive.google.com/drive/folders/1y5OzG5QcKUcpLWZapBM197xScgYBcN4Q?usp=drive_link) 
-* To visit the SharePoint slide library folder^, [**CLICK HERE**] (https://alleninstitute.sharepoint.com/:f:/s/SPOCTTGrant2/IgCKxhgpg4EuQYow4EFNYHDuAQ_Hz6akvwiKjUa9b3o6Au0?e=jgEkYi)
+* To visit the SharePoint slide library folder^, [**CLICK HERE**](https://alleninstitute.sharepoint.com/:f:/s/SPOCTTGrant2/IgCKxhgpg4EuQYow4EFNYHDuAQ_Hz6akvwiKjUa9b3o6Au0?e=jgEkYi)
