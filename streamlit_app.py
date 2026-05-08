@@ -95,182 +95,180 @@ st.markdown(
     - Use slides as-is or adapt them to your audience and context.
     - If you have helpful slides to share, please contribute them to the library using the **"📤 Upload New Slides"** tab.
 
-    #### If you have any suggestions or have difficulty accessing any slide decks please contact [**Jeremy Miller**](mailto:jeremym@alleninstitute.org?subject=Scientific%20Slide%20Library).
-    
-    ___
-    
+    #### If you have any suggestions or have difficulty accessing any slide decks please contact [**Jeremy Miller**](mailto:jeremym@alleninstitute.org?subject=Scientific%20Slide%20Library).   
     """
 )
 
 # --- 5. TABS ---
-tab1, tab2 = st.tabs(["📚 Browse Library", "📤 Upload New Slides"])
+# Wrapping the tabs in a bordered container to delineate from the header
+with st.container(border=True):
+    tab1, tab2 = st.tabs(["📚 Browse Library", "📤 Upload New Slides"])
 
+    # =========================
+    # 📚 TAB 1: BROWSE LIBRARY
+    # =========================
+    with tab1:
+        st.header("Library Database")
 
-# =========================
-# 📚 TAB 1: BROWSE LIBRARY
-# =========================
-with tab1:
-    st.header("Library Database")
-
-    st.subheader("🔍 Search Library")
-    search_query = st.text_input(
-        "",
-        placeholder="Search by title, description, keyword, or contact…"
-    )
-
-    try:
-        result = sheets_service.spreadsheets().values().get(
-            spreadsheetId=SHEET_ID,
-            range="Sheet1!A:Z"
-        ).execute()
-
-        values = result.get("values", [])
-
-        if not values:
-            st.info("The library is currently empty. Start by uploading a file!")
-        else:
-            df = pd.DataFrame(values[1:], columns=values[0])
-
-            # --- CREATE DOWNLOAD LINK ---
-            def make_download_url(view_url):
-                try:
-                    if "drive.google.com" in view_url:
-                        file_id = view_url.split("/d/")[1].split("/")[0]
-                        return f"https://drive.google.com/uc?export=download&id={file_id}"
-                    return view_url
-                except Exception:
-                    return view_url
-
-            if "Link" in df.columns:
-                df["Download"] = df["Link"].apply(make_download_url)
-
-            # --- SEARCH FILTER ---
-            if search_query:
-                df = df[df.apply(
-                    lambda row: row.astype(str).str.contains(search_query, case=False).any(),
-                    axis=1
-                )]
-
-            # --- COLUMN ORDERING ---
-            desired_order = [
-                "Presentation Title",
-                "Description",
-                "Keywords",
-                "Link",       # View
-                "Contact",     # Download
-                "Date Updated"
-            ]
-            df = df[[c for c in desired_order if c in df.columns]]
-
-            # --- DISPLAY TABLE ---
-            st.dataframe(
-                df,
-                use_container_width=True,
-                hide_index=True,
-                height=600,
-                row_height=100,  # <--- Add this to enable text wrapping
-                column_config={
-                    "Presentation Title": st.column_config.TextColumn(
-                        "Title", width="small"
-                    ),
-                    "Description": st.column_config.TextColumn(
-                        "Description", width="large"
-                    ),
-                    "Keywords": st.column_config.TextColumn(
-                        "Keywords", width="small"
-                    ),
-                    "Link": st.column_config.LinkColumn(
-                        "View", display_text="👁️ Open file", width=50
-                    ),
-                    "Contact": st.column_config.TextColumn(
-                        "Contact", width=50
-                    ),
-                    "Date Updated": st.column_config.TextColumn(
-                        "Date Updated", width=50
-                    )
-                }
-            )
-
-            if st.button("🔄 Refresh Database"):
-                st.rerun()
-
-    except Exception as e:
-        st.error(f"Could not load the database: {e}")
-
-
-# =========================
-# 📤 TAB 2: UPLOAD NEW FILE
-# =========================
-with tab2:
-    st.header("Contribute to the Library")
-    st.write("Upload your slides and provide the associated metadata.")
-
-    with st.form("upload_form", clear_on_submit=True):
-        person = st.text_input("Your Name")
-        name = st.text_input("Presentation Title")
-        description = st.text_area("Topic / Description")
-        keywords = st.text_input("Keywords (comma separated)")
-        date_updated = st.text_input("Date updated (MM/YYYY)")
-        uploaded_file = st.file_uploader(
-            "Choose Presentation File (PDF, PPTX, etc.)"
+        st.subheader("🔍 Search Library")
+        search_query = st.text_input(
+            "",
+            placeholder="Search by title, description, keyword, or contact…"
         )
 
-        submit_button = st.form_submit_button("Submit Entry")
+        try:
+            result = sheets_service.spreadsheets().values().get(
+                spreadsheetId=SHEET_ID,
+                range="Sheet1!A:Z"
+            ).execute()
 
-    if submit_button:
-        if not name or not description:
-            st.warning("Please provide at least a title and a description.")
-        else:
-            with st.spinner("Processing upload..."):
-                file_link = "No file uploaded"
+            values = result.get("values", [])
 
-                if uploaded_file is not None:
-                    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-                        tmp.write(uploaded_file.getvalue())
-                        tmp_path = tmp.name
+            if not values:
+                st.info("The library is currently empty. Start by uploading a file!")
+            else:
+                df = pd.DataFrame(values[1:], columns=values[0])
 
+                # --- CREATE DOWNLOAD LINK ---
+                def make_download_url(view_url):
                     try:
-                        file_metadata = {
-                            "name": uploaded_file.name,
-                            "parents": [FOLDER_ID]
-                        }
-                        media = MediaFileUpload(tmp_path, resumable=True)
+                        if "drive.google.com" in view_url:
+                            file_id = view_url.split("/d/")[1].split("/")[0]
+                            return f"https://drive.google.com/uc?export=download&id={file_id}"
+                        return view_url
+                    except Exception:
+                        return view_url
 
-                        uploaded_drive_file = drive_service.files().create(
-                            body=file_metadata,
-                            media_body=media,
-                            fields="id, webViewLink"
-                        ).execute()
+                if "Link" in df.columns:
+                    df["Download"] = df["Link"].apply(make_download_url)
 
-                        file_link = uploaded_drive_file.get("webViewLink")
+                # --- SEARCH FILTER ---
+                if search_query:
+                    df = df[df.apply(
+                        lambda row: row.astype(str).str.contains(search_query, case=False).any(),
+                        axis=1
+                    )]
 
-                    except Exception as e:
-                        st.error(f"Drive Error: {e}")
+                # --- COLUMN ORDERING ---
+                desired_order = [
+                    "Presentation Title",
+                    "Description",
+                    "Keywords",
+                    "Link",       # View
+                    "Contact",     # Download
+                    "Date Updated"
+                ]
+                df = df[[c for c in desired_order if c in df.columns]]
 
-                    finally:
-                        if os.path.exists(tmp_path):
-                            os.remove(tmp_path)
+                # --- DISPLAY TABLE ---
+                st.dataframe(
+                    df,
+                    use_container_width=True,
+                    hide_index=True,
+                    height=600,
+                    row_height=100,  # Enables text wrapping
+                    column_config={
+                        "Presentation Title": st.column_config.TextColumn(
+                            "Title", width="small"
+                        ),
+                        "Description": st.column_config.TextColumn(
+                            "Description", width="large"
+                        ),
+                        "Keywords": st.column_config.TextColumn(
+                            "Keywords", width="small"
+                        ),
+                        "Link": st.column_config.LinkColumn(
+                            "View", display_text="👁️ Open file", width=50
+                        ),
+                        "Contact": st.column_config.TextColumn(
+                            "Contact", width=50
+                        ),
+                        "Date Updated": st.column_config.TextColumn(
+                            "Date Updated", width=50
+                        )
+                    }
+                )
 
-                try:
-                    row_data = [[
-                        name,
-                        description,
-                        keywords,
-                        file_link,
-                        person,
-                        date_updated
-                    ]]
-
-                    sheets_service.spreadsheets().values().append(
-                        spreadsheetId=SHEET_ID,
-                        range="Sheet1!A1",
-                        valueInputOption="USER_ENTERED",
-                        body={"values": row_data}
-                    ).execute()
-
-                    st.success("✅ Entry recorded successfully!")
-                    st.balloons()
+                if st.button("🔄 Refresh Database"):
                     st.rerun()
 
-                except Exception as e:
-                    st.error(f"Sheets Error: {e}")
+        except Exception as e:
+            st.error(f"Could not load the database: {e}")
+
+
+    # =========================
+    # 📤 TAB 2: UPLOAD NEW FILE
+    # =========================
+    with tab2:
+        st.header("Contribute to the Library")
+        st.write("Upload your slides and provide the associated metadata.")
+
+        with st.form("upload_form", clear_on_submit=True):
+            person = st.text_input("Your Name")
+            name = st.text_input("Presentation Title")
+            description = st.text_area("Topic / Description")
+            keywords = st.text_input("Keywords (comma separated)")
+            date_updated = st.text_input("Date updated (MM/YYYY)")
+            uploaded_file = st.file_uploader(
+                "Choose Presentation File (PDF, PPTX, etc.)"
+            )
+
+            submit_button = st.form_submit_button("Submit Entry")
+
+        if submit_button:
+            if not name or not description:
+                st.warning("Please provide at least a title and a description.")
+            else:
+                with st.spinner("Processing upload..."):
+                    file_link = "No file uploaded"
+
+                    if uploaded_file is not None:
+                        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                            tmp.write(uploaded_file.getvalue())
+                            tmp_path = tmp.name
+
+                        try:
+                            file_metadata = {
+                                "name": uploaded_file.name,
+                                "parents": [FOLDER_ID]
+                            }
+                            media = MediaFileUpload(tmp_path, resumable=True)
+
+                            uploaded_drive_file = drive_service.files().create(
+                                body=file_metadata,
+                                media_body=media,
+                                fields="id, webViewLink"
+                            ).execute()
+
+                            file_link = uploaded_drive_file.get("webViewLink")
+
+                        except Exception as e:
+                            st.error(f"Drive Error: {e}")
+
+                        finally:
+                            if os.path.exists(tmp_path):
+                                os.remove(tmp_path)
+
+                    try:
+                        row_data = [[
+                            name,
+                            description,
+                            keywords,
+                            file_link,
+                            person,
+                            date_updated
+                        ]]
+
+                        sheets_service.spreadsheets().values().append(
+                            spreadsheetId=SHEET_ID,
+                            range="Sheet1!A1",
+                            valueInputOption="USER_ENTERED",
+                            body={"values": row_data}
+                        ).execute()
+
+                        st.success("✅ Entry recorded successfully!")
+                        st.balloons()
+                        st.rerun()
+
+                    except Exception as e:
+                        st.error(f"Sheets Error: {e}")
