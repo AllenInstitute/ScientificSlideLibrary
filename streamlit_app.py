@@ -54,7 +54,7 @@ st.markdown(
     }
 
     .stTabs [data-baseweb="tab"] p {
-        font-size: 24px;
+        font-size: 20px;
         font-weight: bold;
     }
 
@@ -89,15 +89,17 @@ st.markdown(
     Welcome to the Scientific Slide Library, a curated collection of reusable, non-confidential slides and slide decks covering key scientific topics (e.g., cell types, taxonomies, patch-seq, spatial transcriptomics, and more). This library is designed to make it easy to quickly build high-quality, consistent presentations for talks, meetings, and outreach.
 
     #### How to use
-    - Search for content of interest on the "📚 Browse Library" tab.
+    - Search for content of interest on the **"📚 Browse Library"** tab.
     - Feel free to incorporate these slides into your presentations.
     - Please credit the original slide creators where appropriate.
     - Use slides as-is or adapt them to your audience and context.
-    - **If you have helpful slides to share, please contribute them to the library using the "📤 Upload New Slides" tab.**
+    - If you have helpful slides to share, please contribute them to the library using the **"📤 Upload New Slides"** tab.
 
-    If you have any suggestions or have difficulty accessing any slide decks please contact [**Jeremy Miller**](mailto:jeremym@alleninstitute.org?subject=Scientific%20Slide%20Library).
+    #### If you have any suggestions or have difficulty accessing any slide decks please contact [**Jeremy Miller**](mailto:jeremym@alleninstitute.org?subject=Scientific%20Slide%20Library).
     """
 )
+
+st.divider()
 
 # --- 5. TABS ---
 tab1, tab2 = st.tabs(["📚 Browse Library", "📤 Upload New Slides"])
