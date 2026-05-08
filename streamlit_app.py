@@ -98,9 +98,7 @@ st.markdown(
     #### If you have any suggestions or have difficulty accessing any slide decks please contact [**Jeremy Miller**](mailto:jeremym@alleninstitute.org?subject=Scientific%20Slide%20Library).
     """
 )
-
 st.divider()
-
 # --- 5. TABS ---
 tab1, tab2 = st.tabs(["📚 Browse Library", "📤 Upload New Slides"])
 
